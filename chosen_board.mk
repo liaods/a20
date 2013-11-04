@@ -1,6 +1,6 @@
-BOARD=pcduino
+BOARD=pcduino3
 ANDROID=
-SOC=a10
-UBOOT_CONFIG=pcduino
-MACH=sun4i
-KERNEL_CONFIG=sun4i_defconfig
+SOC=a20
+UBOOT_CONFIG=pcduino3
+MACH=sun7i
+KERNEL_CONFIG=sun7i_defconfig
