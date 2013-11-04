@@ -18,9 +18,11 @@
  */
 
 #include <linux/module.h>
-#include <mach/aw_ccu.h>
-#include "hdmi_core.h"
+#include <plat/system.h>
 #include "../disp/sunxi_disp_regs.h"
+#include "../disp/OSAL_Clock.h"
+#include "hdmi_cec.h"
+#include "hdmi_core.h"
 
 #ifdef CONFIG_SUNXI_DVI_FIX
 static char *audio = "EDID:0";
@@ -42,6 +44,7 @@ __s32 video_mode = HDMI720P_50;
 HDMI_AUDIO_INFO audio_info;
 __u8 Device_Support_VIC[HDMI_DEVICE_SUPPORT_VIC_SIZE];
 static __s32 HPD;
+static int audio_devs_registered;
 
 __u32 hdmi_pll = AW_SYS_CLK_PLL3;
 __u32 hdmi_clk = 297000000;
@@ -72,6 +75,13 @@ struct __disp_video_timing video_timing[] = {
 
 const int video_timing_edid = ARRAY_SIZE(video_timing) - 1;
 
+static struct platform_device audio_devs[] = {
+	{ .name = "sunxi-sndhdmi" },
+	{ .name = "sunxi-hdmiaudio" },
+	{ .name = "sunxi-hdmiaudio-codec" },
+	{ .name = "sunxi-hdmiaudio-pcm-audio" },
+};
+
 void hdmi_delay_ms(__u32 t)
 {
 	__u32 timeout = t * HZ / 1000;
@@ -97,6 +107,8 @@ __s32 hdmi_core_initial(void)
 	memset(Device_Support_VIC, 0, HDMI_DEVICE_SUPPORT_VIC_SIZE);
 
 	writel(0x80000000, HDMI_CTRL); /* start hdmi controller */
+	if (sunxi_is_sun7i())
+		writel(0xe0000000, HDMI_TX_DRIVER); /* power enable */
 
 	return 0;
 }
@@ -108,7 +120,7 @@ main_Hpd_Check(void)
 	times = 0;
 
 	for (i = 0; i < 3; i++) {
-		hdmi_delay_ms(1);
+		hdmi_delay_ms(10);
 		if (readl(HDMI_HPD) & 0x01)
 			times++;
 	}
@@ -120,11 +132,15 @@ main_Hpd_Check(void)
 
 __s32 hdmi_main_task_loop(void)
 {
+	int rc, i;
+
 	HPD = main_Hpd_Check();
 	if (!HPD && hdmi_state > HDMI_State_Wait_Hpd) {
 		__inf("plugout\n");
 		hdmi_state = HDMI_State_Wait_Hpd;
 	}
+
+	hdmi_cec_task_loop();
 
 	/* ? where did all the breaks run off to? --libv */
 	switch (hdmi_state) {
@@ -152,11 +168,23 @@ __s32 hdmi_main_task_loop(void)
 		ParseEDID();
 		readl(HDMI_I2C_UNKNOWN_1);
 
+		if (!cec_standby)
+			cec_count = 100;
+
 		if (audio_edid && Device_Support_VIC[HDMI_EDID]) {
 			if (audio_info.supported_rates)
 				audio_enable = 1;
 			else
 				audio_enable = 0;
+		}
+		if (audio_enable && !audio_devs_registered) {
+			for (i = 0; i < ARRAY_SIZE(audio_devs); i++) {
+				rc = platform_device_register(audio_devs + i);
+				if (rc < 0)
+					pr_warn("Failed to register %s (%d)\n",
+						audio_devs[i].name, rc);
+			}
+			audio_devs_registered = 1;
 		}
 		hdmi_state = HDMI_State_Wait_Video_config;
 
@@ -471,9 +499,19 @@ __s32 video_config(__s32 vic)
 	 * bit 0:     Setting this bit turns the entire fbcon background blue
 	 * bit 1:     Setting this bit turns the entire fbcon background green
 	 * bit 2:     Setting this bit turns the entire fbcon background red
-	 * bit 3-5:   Do not seem to do anything
-	 * bit 6:     Selects a pre-scaler for the clock which divides by 2
-	 * bit 7-13:  Do not seem to do anything
+	 * bit 3:     Unknown, best left 0
+	 * bit 4-5:   These need to be a specific value otherwise the colors
+	 *            will be wrong and some lines will be noise / distortion.
+	 *            The sunxi source dumps use 10 (2) for sun4i and 01 (1)
+	 *            for sun5i and sun7i. Experimentation has found 11 (3) to
+	 *            be a better value for sun5i and sun7i.
+	 * bit 6:     Selects a pre-scaler for the clock which divides by 2 ?
+	 * bit 7:     Setting this bit causes severe line noise in some cases
+	 * bit 8-11:  These seem to set some fifo prefetch balance, default val
+	 *            1000 (8), in cases where there seem to be fifo underruns
+	 *            (some pixels are yellow / flicker) changing this value
+	 *            helps, ie we use 7 on non sun4i for single pll modes.
+	 * bit 12-13: Setting these causes bad / no video in some cases leave 0
 	 * bit 14-15: Clearing one of these bits causes loss of sync
 	 * bit 16-22: Do not seem to do anything
 	 * bit 23:    Clearing this bit causes inverse video
@@ -501,10 +539,21 @@ __s32 video_config(__s32 vic)
 	 * since it lives in another register.
 	 */
 
-	if (hdmi_pll == AW_SYS_CLK_PLL3 || hdmi_pll == AW_SYS_CLK_PLL7)
-		writel(0x00D8C860, HDMI_TX_DRIVER + 4);
-	else
-		writel(0x00D8C820, HDMI_TX_DRIVER + 4);
+	if (hdmi_pll == AW_SYS_CLK_PLL3 || hdmi_pll == AW_SYS_CLK_PLL7) {
+		/* non doubled pll */
+		if (sunxi_is_sun4i())
+			writel(0x00D8C860, HDMI_TX_DRIVER + 4);
+		else
+			writel(0x00D8C770, HDMI_TX_DRIVER + 4);
+	} else {
+		/* x2 pll */
+		if (sunxi_is_sun4i()) {
+			writel(0x00D8C820, HDMI_TX_DRIVER + 4);
+		} else {
+			/* HDG: Note 0x00D8C438 also works */ 
+			writel(0x00D8C830, HDMI_TX_DRIVER + 4);
+                }
+	}
 
 	if (hdmi_pll == AW_SYS_CLK_PLL7 || hdmi_pll == AW_SYS_CLK_PLL7X2)
 		writel(1 << 21, HDMI_TX_DRIVER + 12);

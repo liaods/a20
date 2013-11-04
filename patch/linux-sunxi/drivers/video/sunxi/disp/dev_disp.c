@@ -34,9 +34,11 @@
 #include "dev_disp.h"
 #include "disp_lcd.h"
 #include "dev_fb.h"
+#include "disp_display.h"
 
 #ifdef CONFIG_SUNXI_DVI_FIX
 extern void update_window_percent(int percent);
+extern int get_window_percent(void);
 #endif
 
 struct info_mm {
@@ -126,13 +128,11 @@ static struct resource disp_resource[DISP_IO_NUM] = {
 			   .end = 0x01c1bfff,
 			   .flags = IORESOURCE_MEM,
 			   },
-#ifdef CONFIG_ARCH_SUN5I
 	[DISP_IO_IEP] = {
 			 .start = 0x01e70000,
 			 .end = 0x01e703ff,
 			 .flags = IORESOURCE_MEM,
 			 },
-#endif
 };
 
 __s32 disp_create_heap(__u32 pHeapHead, __u32 nHeapSize)
@@ -223,16 +223,6 @@ void disp_free(void *p)
 	return;
 }
 
-int sunxi_is_version_A(void)
-{
-#ifdef CONFIG_ARCH_SUN4I
-	if (sw_get_ic_ver() == MAGIC_VER_A)
-		return 1;
-#endif
-
-	return 0;
-}
-
 __s32 DRV_lcd_open(__u32 sel)
 {
 	__u32 i = 0;
@@ -312,9 +302,7 @@ __s32 DRV_DISP_Init(void)
 	para.base_lcdc1 = (__u32) g_fbi.base_lcdc1;
 	para.base_tvec0 = (__u32) g_fbi.base_tvec0;
 	para.base_tvec1 = (__u32) g_fbi.base_tvec1;
-#ifdef CONFIG_ARCH_SUN5I
 	para.base_iep = (__u32) g_fbi.base_iep;
-#endif
 	para.base_ccmu = (__u32) g_fbi.base_ccmu;
 	para.base_sdram = (__u32) g_fbi.base_sdram;
 	para.base_pioc = (__u32) g_fbi.base_pioc;
@@ -430,12 +418,15 @@ struct dev_disp_data {
 #define SUNXI_DISP_VERSION_PENDING -1
 #define SUNXI_DISP_VERSION_SKIPPED -2
 	int version;
+	struct  {
+		__u32 layer[SUNXI_DISP_MAX_LAYERS];
+	} layers[2];
 };
 
 static int disp_open(struct inode *inode, struct file *filp)
 {
 	struct dev_disp_data *data =
-		kmalloc(sizeof(struct dev_disp_data), GFP_KERNEL);
+		kzalloc(sizeof(struct dev_disp_data), GFP_KERNEL);
 	static bool warned;
 
 	if (!data)
@@ -460,6 +451,14 @@ static int disp_open(struct inode *inode, struct file *filp)
 static int disp_release(struct inode *inode, struct file *filp)
 {
 	struct dev_disp_data *data = filp->private_data;
+	int i,j;
+
+	for (j = 0; j < 2; j++)
+		for (i = 0; i < SUNXI_DISP_MAX_LAYERS ; i++)
+			if (data->layers[j].layer[i]) {
+				__wrn("layer allocated at close: %i,%u\n", j, data->layers[j].layer[i]);
+				BSP_disp_layer_release(j,data->layers[j].layer[i]);
+			}
 
 	kfree(data);
 	filp->private_data = NULL;
@@ -504,9 +503,7 @@ static int __devinit disp_probe(struct platform_device *pdev)
 	info->base_sdram = 0xf1c01000;
 	info->base_pioc = 0xf1c20800;
 	info->base_pwm = 0xf1c20c00;
-#ifdef CONFIG_ARCH_SUN5I
 	info->base_iep = 0xf1e70000;
-#endif
 	__inf("SCALER0 base 0x%08x\n", info->base_scaler0);
 	__inf("SCALER1 base 0x%08x\n", info->base_scaler1);
 	__inf("IMAGE0 base 0x%08x\n", info->base_image0 + 0x800);
@@ -515,9 +512,8 @@ static int __devinit disp_probe(struct platform_device *pdev)
 	__inf("LCDC1 base 0x%08x\n", info->base_lcdc1);
 	__inf("TVEC0 base 0x%08x\n", info->base_tvec0);
 	__inf("TVEC1 base 0x%08x\n", info->base_tvec1);
-#ifdef CONFIG_ARCH_SUN5I
-	__inf("IEP base 0x%08x\n", info->base_iep);
-#endif
+	if (sunxi_is_sun5i())
+		__inf("IEP base 0x%08x\n", info->base_iep);
 	__inf("CCMU base 0x%08x\n", info->base_ccmu);
 	__inf("SDRAM base 0x%08x\n", info->base_sdram);
 	__inf("PIO base 0x%08x\n", info->base_pioc);
@@ -694,8 +690,9 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			filp_data->version = version;
 			return SUNXI_DISP_VERSION;
 		} else {
-			//pr_info("disp: process %d (%s) has skipped the version "
-			//       "handshake.\n", current->pid, current->comm);
+			pr_err_once("disp: process %d (%s) has skipped "
+					"the version handshake.\n",
+					current->pid, current->comm);
 			filp_data->version = SUNXI_DISP_VERSION_SKIPPED;
 		}
 	}
@@ -859,7 +856,6 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case DISP_CMD_GET_HUE:
 		ret = BSP_disp_get_hue(ubuffer[0]);
 		break;
-#ifdef CONFIG_ARCH_SUN4I
 	case DISP_CMD_ENHANCE_ON:
 		ret = BSP_disp_enhance_enable(ubuffer[0], 1);
 		break;
@@ -871,7 +867,6 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case DISP_CMD_GET_ENHANCE_EN:
 		ret = BSP_disp_get_enhance_enable(ubuffer[0]);
 		break;
-#endif
 
 	case DISP_CMD_CAPTURE_SCREEN:
 		ret = BSP_disp_capture_screen(ubuffer[0],
@@ -886,22 +881,13 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	/* ----iep---- */
 	case DISP_CMD_DE_FLICKER_ON:
-#ifdef CONFIG_ARCH_SUN4I
 		ret = BSP_disp_de_flicker_enable(ubuffer[0], 1);
-#else
-		ret = BSP_disp_iep_deflicker_enable(ubuffer[0], 1);
-#endif
 		break;
 
 	case DISP_CMD_DE_FLICKER_OFF:
-#ifdef CONFIG_ARCH_SUN4I
 		ret = BSP_disp_de_flicker_enable(ubuffer[0], 0);
-#else
-		ret = BSP_disp_iep_deflicker_enable(ubuffer[0], 0);
-#endif
 		break;
 
-#ifdef CONFIG_ARCH_SUN5I
 	case DISP_CMD_GET_DE_FLICKER_EN:
 		ret = BSP_disp_iep_get_deflicker_enable(ubuffer[0]);
 		break;
@@ -945,16 +931,37 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			ret = BSP_disp_iep_set_demo_win(ubuffer[0], 2, &para);
 			break;
 		}
-#endif
+
 	/* ----layer---- */
 	case DISP_CMD_LAYER_REQUEST:
 		ret = BSP_disp_layer_request(ubuffer[0],
 					     (__disp_layer_work_mode_t)
 					     ubuffer[1]);
+		if (ret != DIS_NULL) {
+			int i;
+			__wrn("layer allocated: %lu,%i\n", ubuffer[0], ret);
+			for (i = 0; i < SUNXI_DISP_MAX_LAYERS ; i++)
+				if (! filp_data->layers[ubuffer[0]].layer[i]) {
+					filp_data->layers[ubuffer[0]].layer[i] = ret;
+					break;
+				}
+			BUG_ON (i == SUNXI_DISP_MAX_LAYERS);
+		}
 		break;
 
 	case DISP_CMD_LAYER_RELEASE:
 		ret = BSP_disp_layer_release(ubuffer[0], ubuffer[1]);
+		if (ret == DIS_SUCCESS) {
+			int i;
+			__wrn("layer released: %lu,%lu\n", ubuffer[0], ubuffer[1]);
+			for (i = 0; i < SUNXI_DISP_MAX_LAYERS ; i++)
+				if (filp_data->layers[ubuffer[0]].layer[i] == ubuffer[1]) {
+					filp_data->layers[ubuffer[0]].layer[i] = 0;
+					break;
+				}
+			if (i == SUNXI_DISP_MAX_LAYERS)
+				__wrn("released layer not allocated in this session: %lu,%lu\n", ubuffer[0], ubuffer[1]);
+		}
 		break;
 
 	case DISP_CMD_LAYER_OPEN:
@@ -1035,9 +1042,12 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 #ifdef CONFIG_SUNXI_DVI_FIX
 			int percent = 0;
 			__disp_rect_t src_para;
+                        if ( ubuffer[1] == 100 )
+                        {
 			BSP_disp_layer_get_src_window(ubuffer[0], ubuffer[1], &src_para);
 			percent = 100*100/( src_para.width*100 / para.width );
 			update_window_percent(percent);
+                        }
 #endif
 			ret = BSP_disp_layer_set_screen_window(ubuffer[0],
 							       ubuffer[1],
@@ -1294,12 +1304,23 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case DISP_CMD_HWC_SET_POS:
 		{
 			__disp_pos_t para;
+                        int w, h, percent = 100;
 
 			if (copy_from_user(&para, (void __user *)ubuffer[1],
 					   sizeof(__disp_pos_t))) {
 				__wrn("copy_from_user fail\n");
 				return -EFAULT;
 			}
+
+                        // add by liaods
+#ifdef CONFIG_SUNXI_DVI_FIX
+                        percent = get_window_percent();
+                        w = BSP_disp_get_screen_width(0); 
+                        h = BSP_disp_get_screen_height(0);
+                        para.x = w * (100-percent)/100/2 + para.x * percent/100;
+                        para.y = h * (100-percent)/100/2 + para.y * percent/100;
+#endif
+                        // add end
 			ret = BSP_disp_hwc_set_pos(ubuffer[0], &para);
 			break;
 		}
@@ -1403,11 +1424,7 @@ static long disp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 
 	case DISP_CMD_LCD_SET_BRIGHTNESS:
-#ifdef CONFIG_ARCH_SUN4I
-		ret = BSP_disp_lcd_set_bright(ubuffer[0], ubuffer[1]);
-#else
 		ret = BSP_disp_lcd_set_bright(ubuffer[0], ubuffer[1], 0);
-#endif
 		break;
 
 	case DISP_CMD_LCD_GET_BRIGHTNESS:
@@ -1907,10 +1924,20 @@ static struct platform_driver disp_driver = {
 	},
 };
 
-static struct platform_device disp_device = {
+static struct platform_device disp_device_sun4i = {
 	.name = "disp",
 	.id = -1,
-	.num_resources = ARRAY_SIZE(disp_resource),
+	.num_resources = 8,
+	.resource = disp_resource,
+	.dev = {
+		.release = disp_device_release,
+	}
+};
+
+static struct platform_device disp_device_sun5i = {
+	.name = "disp",
+	.id = -1,
+	.num_resources = 9,
 	.resource = disp_resource,
 	.dev = {
 		.release = disp_device_release,
@@ -1941,7 +1968,10 @@ static int __init disp_module_init(void)
 
 	device_create(disp_class, NULL, devid, NULL, "disp");
 
-	ret = platform_device_register(&disp_device);
+	if (sunxi_is_sun5i())
+		ret = platform_device_register(&disp_device_sun5i);
+	else
+		ret = platform_device_register(&disp_device_sun4i);
 
 	if (ret == 0)
 		ret = platform_driver_register(&disp_driver);
@@ -1963,7 +1993,10 @@ static void __exit disp_module_exit(void)
 	DRV_DISP_Exit();
 
 	platform_driver_unregister(&disp_driver);
-	platform_device_unregister(&disp_device);
+	if (sunxi_is_sun5i())
+		platform_device_unregister(&disp_device_sun5i);
+	else
+		platform_device_unregister(&disp_device_sun4i);
 
 	device_destroy(disp_class, devid);
 	class_destroy(disp_class);

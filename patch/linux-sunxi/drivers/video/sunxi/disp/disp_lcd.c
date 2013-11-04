@@ -31,6 +31,8 @@ static __lcd_flow_t close_flow[2];
 __panel_para_t gpanel_info[2];
 static __lcd_panel_fun_t lcd_panel_fun[2];
 
+void LCD_delay_ms(__u32 ms);
+
 static void
 LCD_get_reg_bases(__reg_bases_t *para)
 {
@@ -720,9 +722,8 @@ static __s32 pwm_write_reg(__u32 offset, __u32 value)
 {
 	writel(value, gdisp.init_para.base_pwm + offset);
 
-#ifdef CONFIG_ARCH_SUN4I
-	LCD_delay_ms(20);
-#endif
+	if (sunxi_is_sun4i())
+		LCD_delay_ms(20);
 
 	return 0;
 }
@@ -770,7 +771,6 @@ pwm_enable(__u32 channel, __bool b_en)
 
 	return 0;
 }
-EXPORT_SYMBOL(pwm_enable);
 
 #ifdef CONFIG_ARCH_SUN4I
 /*
@@ -858,7 +858,7 @@ __s32 pwm_set_para(__u32 channel, __pwm_info_t *pwm_info)
 
 	return 0;
 }
-#else
+#else /* SUN5I or SUN7I */
 /*
  * channel: pwm channel,0/1
  * pwm_info->freq:  pwm freq, in hz
@@ -992,7 +992,7 @@ __s32 LCD_PWM_EN(__u32 sel, __bool b_en)
 		memcpy(gpio_info, &(gdisp.screen[sel].lcd_cfg.lcd_pwm),
 		       sizeof(user_gpio_set_t));
 
-		if (!sunxi_is_version_A() &&
+		if (sw_get_ic_ver() != SUNXI_VER_A10A &&
 		    (gpanel_info[sel].lcd_pwm_not_used == 0)) {
 			if (b_en)
 				pwm_enable(gpanel_info[sel].lcd_pwm_ch, b_en);
@@ -1240,7 +1240,7 @@ __s32 Disp_lcdc_init(__u32 sel)
 
 		gpanel_info[sel].tcon_index = 0;
 
-		if (!sunxi_is_version_A() &&
+		if (sw_get_ic_ver() != SUNXI_VER_A10A &&
 		    (gpanel_info[sel].lcd_pwm_not_used == 0)) {
 			__pwm_info_t pwm_info;
 
@@ -1599,12 +1599,8 @@ __s32 BSP_disp_lcd_open_before(__u32 sel)
 	else
 		TCON1_cfg_ex(sel, (__panel_para_t *) &gpanel_info[sel]);
 
-#ifdef CONFIG_ARCH_SUN4I
-	BSP_disp_set_output_csc(sel, DISP_OUTPUT_TYPE_LCD);
-#else
 	BSP_disp_set_output_csc(sel, DISP_OUTPUT_TYPE_LCD,
 				gdisp.screen[sel].iep_status & DRC_USED);
-#endif
 	DE_BE_set_display_size(sel, gpanel_info[sel].lcd_x,
 			       gpanel_info[sel].lcd_y);
 	DE_BE_Output_Select(sel, sel);
@@ -1622,9 +1618,7 @@ __s32 BSP_disp_lcd_open_after(__u32 sel)
 	gdisp.screen[sel].status |= LCD_ON;
 	gdisp.screen[sel].output_type = DISP_OUTPUT_TYPE_LCD;
 	Lcd_Panel_Parameter_Check(sel);
-#ifdef CONFIG_ARCH_SUN5I
 	Disp_drc_enable(sel, TRUE);
-#endif
 
 	Display_set_fb_timing(sel);
 
@@ -1640,10 +1634,8 @@ __s32 BSP_disp_lcd_close_befor(__u32 sel)
 {
 	close_flow[sel].func_num = 0;
 	lcd_panel_fun[sel].cfg_close_flow(sel);
-#ifdef CONFIG_ARCH_SUN5I
 	/* must close immediately, cause vbi may not come */
 	Disp_drc_enable(sel, 2);
-#endif
 
 	gdisp.screen[sel].status &= ~LCD_ON;
 	gdisp.screen[sel].output_type = DISP_OUTPUT_TYPE_NONE;
@@ -1686,21 +1678,15 @@ __s32 BSP_disp_lcd_xy_switch(__u32 sel, __s32 mode)
  * sun4i: 0-16
  * sun5i: 0-256
  */
-__s32 BSP_disp_lcd_set_bright(__u32 sel, __u32 bright
-#ifdef CONFIG_ARCH_SUN5I
-			      , __u32 from_iep
-#endif
-)
+__s32 BSP_disp_lcd_set_bright(__u32 sel, __u32 bright, __u32 from_iep)
 {
 	__u32 duty_ns;
 
-	if (!sunxi_is_version_A() && (gpanel_info[sel].lcd_pwm_not_used == 0)) {
-#ifdef CONFIG_ARCH_SUN4I
+	if (!sunxi_is_sun5i() && sw_get_ic_ver() != SUNXI_VER_A10A &&
+		gpanel_info[sel].lcd_pwm_not_used == 0) {
 		if (bright != 0)
 			bright += 1;
-#endif
 
-#ifdef CONFIG_ARCH_SUN4I
 		if (gpanel_info[sel].lcd_pwm_pol == 0)
 			duty_ns =
 			    (bright *
@@ -1712,7 +1698,10 @@ __s32 BSP_disp_lcd_set_bright(__u32 sel, __u32 bright
 			      bright) *
 			     gdisp.pwm[gpanel_info[sel].lcd_pwm_ch].period_ns +
 			     128) / 256;
-#else
+
+		pwm_set_duty_ns(gpanel_info[sel].lcd_pwm_ch, duty_ns);
+	}
+	if (sunxi_is_sun5i()) {
 		if (gpanel_info[sel].lcd_pwm_pol == 0)
 			duty_ns =
 			    (bright * gdisp.screen[sel].lcd_bright_dimming *
@@ -1725,13 +1714,10 @@ __s32 BSP_disp_lcd_set_bright(__u32 sel, __u32 bright
 			      256) *
 			     gdisp.pwm[gpanel_info[sel].lcd_pwm_ch].period_ns +
 			     128) / 256;
-#endif
 
 		pwm_set_duty_ns(gpanel_info[sel].lcd_pwm_ch, duty_ns);
 	}
-#ifdef CONFIG_ARCH_SUN5I
-	if (!from_iep)
-#endif
+	if (!sunxi_is_sun5i() || !from_iep)
 		gdisp.screen[sel].lcd_bright = bright;
 
 	return DIS_SUCCESS;
@@ -1917,13 +1903,16 @@ __u32 BSP_disp_get_cur_line(__u32 sel)
 	return line;
 }
 
-#ifdef CONFIG_ARCH_SUN5I
 __s32 BSP_disp_close_lcd_backlight(__u32 sel)
 {
 	user_gpio_set_t gpio_info[1];
 	__hdle hdl;
 	int value, ret;
 	char primary_key[20];
+
+	if (!sunxi_is_sun5i())
+		return 0;
+
 	sprintf(primary_key, "lcd%d_para", sel);
 	value = 1;
 	ret = script_parser_fetch(primary_key, "lcd_bl_en_used", &value, 1);
@@ -1961,5 +1950,3 @@ __s32 BSP_disp_close_lcd_backlight(__u32 sel)
 	}
 	return 0;
 }
-#endif /* CONFIG_ARCH_SUN5I */
-

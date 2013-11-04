@@ -93,12 +93,18 @@ static u32 tv_mode_to_frame_rate(u32 mode)
 }
 
 #ifdef CONFIG_SUNXI_DVI_FIX
-static int percent = 0;
+static int percent = 100;
 void update_window_percent(int new_percent)
 {
 	percent = new_percent;
 }
 EXPORT_SYMBOL(update_window_percent);
+
+int get_window_percent(void)
+{
+        return percent;
+}
+EXPORT_SYMBOL(get_window_percent);
 
 void set_window_percent(void)
 {
@@ -1228,6 +1234,9 @@ static int Fb_set_par(struct fb_info *info)
 			BSP_disp_layer_set_para(sel, layer_hdl, &layer_para);
 		}
 	}
+#ifdef CONFIG_SUNXI_DVI_FIX
+        set_window_percent();
+#endif
 	return 0;
 }
 
