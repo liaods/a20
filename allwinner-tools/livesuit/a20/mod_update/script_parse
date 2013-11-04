@@ -240,8 +240,8 @@ def check_part_name_valid(name):
 def check_part_size_valid(size):
     if not size.isdigit():
         return (False, "invalid partition size, must be decimal base digit, unit: 512Bytes")
-    if int(size) % 32768:
-        return (False, "invalid partition size, must 16MB align, unit: 512Bytes")
+#    if int(size) % 32768:
+#        return (False, "invalid partition size, must 16MB align, unit: 512Bytes")
     return (True, "valid")
 
 def check_part_keydata_valid(keydata):
@@ -318,7 +318,7 @@ def check_part_config(conf_lines):
             if int(value) % 16384:
                 error_msg("L%d: %s" % (i+1, line))
                 error_msg("invalid partition size, must 16MB align, unit: KB")
-                return False
+                #return False
 
         elif cmp(mainkey, "partition_start") == 0:
             error_msg("L%d: %s" % (i+1, line))
