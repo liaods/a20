@@ -37,7 +37,7 @@ modify_image_cfg()
 	cp -rf $1 ${BUILD_DIR}/image.cfg
 	sed -i -e "s|^INPUT_DIR..*$|INPUT_DIR=${BUILD_DIR}|g" \
 		-e "s|^EFEX_DIR..*$|EFEX_DIR=${SOURCE_DIR}/eFex|g" \
-		-e "s|^imagename..*$|imagename=output/${BOARD}_${SOC}_kernel_livesuit_${DATE}.img|g" \
+		-e "s|^imagename..*$|imagename=${BUILD_DIR}/../../output/${BOARD}_${SOC}_kernel_livesuit_${DATE}.img|g" \
 		${BUILD_DIR}/image.cfg
 }
 
@@ -166,6 +166,163 @@ do_pack()
 	echo "Done"
 }
 
+
+pack_error()
+{
+    echo -e "\033[47;31mERROR: $*\033[0m"
+}
+
+cmd_done()
+{
+    printf "[OK]\n"
+}
+
+cmd_fail()
+{
+    printf "\033[0;31;1m[Failed]\033[0m\n"
+    printf "\nrefer to out/pack.log for detail information.\n\n"
+    pack_error "Packing Failed."
+    exit 1
+}
+
+pack_cmd()
+{
+    printf "$* "
+    local cmdlog="./cmd.log"
+    $@ > $cmdlog
+
+    local ret=1
+    case "$1" in
+        cp)
+            if [ $? = 0 ] ; then
+                ret=0
+            fi
+            ;;
+
+        script)
+            if grep -q "parser 1 file ok" $cmdlog ; then
+                ret=0
+            fi
+            ;;
+
+        update_mbr)
+            if grep -q "update mbr file ok" $cmdlog ; then
+                ret=0
+            fi
+            ;;
+
+        update_boot0)
+            if grep -q "update boot0 ok" $cmdlog ; then
+                ret=0
+            fi
+            ;;
+
+        fsbuild)
+            if [ $2 = "bootfs.ini" -a -f ./bootfs.fex ] ; then
+                ret=0
+            fi
+            ;;
+
+        FileAddSum)
+            if [ -f ./$2 ] ; then
+                ret=0
+            fi
+            ;;
+
+        dragon)
+            if grep -q "Dragon execute image.cfg SUCCESS" $cmdlog ; then
+                [ -f ${IMG_NAME} ] && ret=0
+            fi
+            ;;
+
+        *)
+            printf " [Uncheck]\n"
+            cat $cmdlog >> pack.log
+            echo "----------" >> pack.log
+            return 0
+            ;;
+    esac
+
+    cat $cmdlog >> pack.log
+    echo "----------" >> pack.log
+
+    if [ $ret -ne 0 ] ; then
+        cmd_fail
+    else
+        cmd_done
+    fi
+}
+
+function do_pack_a20()
+{
+    echo "Packing for linux"
+    export PATH=${LIVESUIT_DIR}/a20/mod_update:${LIVESUIT_DIR}/a20/eDragonEx:${LIVESUIT_DIR}/a20/fsbuild200:$PATH
+    mkdir -p ${BUILD_DIR}
+    cp -f ${LIVESUIT_DIR}/a20/default/* ${BUILD_DIR}
+    cp sunxi-boards/sys_config/${SOC}/${BOARD}.fex ${BUILD_DIR}/sys_config.fex
+    cp -r ${SOURCE_DIR}/eFex ${BUILD_DIR}
+    cp -r ${SOURCE_DIR}/eGon ${BUILD_DIR}
+    cp -r ${SOURCE_DIR}/wboot ${BUILD_DIR}   
+    cd ${BUILD_DIR}
+    
+    [ -f sys_partition.fex ] && script_parse -f sys_partition.fex
+    [ -f sys_config.fex ] && script_parse -f sys_config.fex
+
+	cp -rf ${SOURCE_DIR}/eGon/boot0_nand.bin ${BUILD_DIR}/boot0_nand.bin
+	cp -rf ${SOURCE_DIR}/eGon/boot1_nand.bin ${BUILD_DIR}/boot1_nand.fex
+	cp -rf ${SOURCE_DIR}/eGon/boot0_sdcard.bin ${BUILD_DIR}/boot0_sdcard.fex
+	cp -rf ${SOURCE_DIR}/eGon/boot1_sdcard.bin ${BUILD_DIR}/boot1_sdcard.fex
+
+	cp -rf ${SOURCE_DIR}/eFex/split_xxxx.fex  ${BUILD_DIR}
+	cp -rf ${SOURCE_DIR}/wboot/bootfs ${BUILD_DIR}
+	cp -rf ${SOURCE_DIR}/wboot/bootfs.ini ${BUILD_DIR}
+
+	sed -i -e "s|^fsname=..*$|fsname=${BUILD_DIR}/bootloader.fex|g" \
+		-e "s|^root0=..*$|root0=${BUILD_DIR}/bootfs|g" ${BUILD_DIR}/bootfs.ini
+
+    modify_image_cfg ${LIVESUIT_DIR}/a20/default/image.cfg
+
+
+    busybox unix2dos sys_config.fex
+    busybox unix2dos sys_partition.fex
+    pack_cmd script sys_config.fex
+    pack_cmd script sys_partition.fex
+
+    cp sys_config.bin bootfs/script.bin
+	cp ../${KERNEL_CONFIG}-linux/arch/arm/boot/uImage ${BUILD_DIR}/bootfs/
+    # update bootlogo.bmp
+    if [ -f ${BUILD_DIR}/bootlogo.bmp ]; then
+        cp ${BUILD_DIR}/bootlogo.bmp bootfs/os_show/ -f
+    fi
+    pack_cmd update_mbr sys_partition.bin 4
+
+    pack_cmd update_boot0 boot0_nand.bin   sys_config.bin NAND
+    pack_cmd update_boot0 boot0_sdcard.fex sys_config.bin SDMMC_CARD
+    pack_cmd update_boot1 boot1_nand.fex   sys_config.bin NAND
+    pack_cmd update_boot1 boot1_sdcard.fex sys_config.bin SDMMC_CARD
+
+    fsbuild bootfs.ini split_xxxx.fex
+
+    u_boot_env_gen env.cfg env.fex
+
+    #nandc is reserved now
+    echo "null" > ${BUILD_DIR}/boot.fex
+    rm -f ${BUILD_DIR}/rootfs.fex
+    ln -sv "$ROOTFS" ${BUILD_DIR}/rootfs.fex
+
+    pack_cmd dragon image.cfg sys_partition.fex
+
+    cd ${BUILD_DIR}/../../
+    if [ -e output/${IMG_NAME} ]; then
+        echo '----------image is at----------'
+        echo -e '\033[0;31;1m'
+        echo "`pwd`/output/${BOARD}_${SOC}_kernel_livesuit_${DATE}.img"
+        echo -e '\033[0m'
+    fi
+
+    cd ..
+}
+
 while getopts R:r:b:s: opt; do
 	case "$opt" in
 		R) ROOTFS=$(readlink -f "$OPTARG"); ANDROID=false ;;
@@ -186,7 +343,11 @@ else
 	[ -e "$ROOTFS" ] || show_usage_and_die
 fi
 
-do_pack
+if [ "${SOC}" = "a20" ]; then
+    do_pack_a20
+else
+    do_pack
+fi
 
 
 
