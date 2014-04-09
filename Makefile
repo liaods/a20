@@ -26,7 +26,7 @@ clean:
 	rm -rf $(BUILD_PATH)
 
 ## patch
-patch: linux-sunxi/.git
+patch: linux-sunxi/.git u-boot-sunxi/.git
 	$(Q)$(CURDIR)/apply_patch.sh
 	$(Q)rm -f $(K_DOT_CONFIG)
 
