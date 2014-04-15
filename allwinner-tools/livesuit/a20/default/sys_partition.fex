@@ -42,7 +42,7 @@ size = 16384
 ;------------------------------>mmcblk0p5/nandb
 [partition]
     name         = env
-    size         = 4096
+    size         = 32768
     downloadfile = "env.fex"
     verify       = 1
 ;------------------------------>mmcblk0p6/nandc
@@ -52,12 +52,3 @@ size = 16384
     downloadfile = "boot.fex"
     verify       = 1
 
-[partition]
-    name         = rootfs
-    size         = 3686400
-    downloadfile = "rootfs.fex"
-    verify       = 1
-
-[partition]
-    name         = private
-    size         = 4096
