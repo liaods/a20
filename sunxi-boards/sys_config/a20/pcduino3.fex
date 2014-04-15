@@ -833,7 +833,7 @@ tvin_channel_num    = 4
 ;-------------------------------------------------------------------------------
 [sata_para]
 sata_used           = 1
-sata_power_en       =
+sata_power_en       = port:PH02<1><default><default><1>
 
 
 ;-------------------------------------------------------------------------------
@@ -1013,7 +1013,7 @@ kp_out7             = port:PH27<4><1><default><default>
 ;-------------------------------------------------------------------------------
 [usbc0]
 usb_used            = 1
-usb_port_type       = 1
+usb_port_type       = 0
 usb_detect_type     = 0
 usb_id_gpio         = port:PH04<0><1><default><default>
 usb_det_vbus_gpio   = "axp_ctrl"
@@ -1319,6 +1319,7 @@ spdif_din           =
 [audio_para]
 audio_used          = 1
 audio_pa_ctrl        = port:PH15<1><default><default><0>
+capture_used        = 1
 
 [switch_para]
 switch_used	    = 0
@@ -1327,8 +1328,8 @@ switch_used	    = 0
 ;ir --- infra remote configuration
 ;-------------------------------------------------------------------------------
 [ir_para]
-ir_used             = 0
-ir_rx               = port:PB04<2><default><default><default>
+ir_used             = 1
+ir0_rx               = port:PB04<2><default><default><default>
 
 
 ;-------------------------------------------------------------------------------
@@ -1503,7 +1504,7 @@ LV8_volt = 1050
 
 [gpio_para]
 gpio_used = 1
-gpio_num = 24
+gpio_num = 50
 gpio_pin_0 = port:PI19<0><1><default><default>
 gpio_pin_1 = port:PI18<0><1><default><default>
 gpio_pin_2 = port:PH07<0><1><default><default>
@@ -1528,8 +1529,36 @@ gpio_pin_20 = port:PC19<0><1><default><default>
 gpio_pin_21 = port:PC21<0><1><default><default>
 gpio_pin_22 = port:PC22<0><1><default><default>
 gpio_pin_23 = port:PC20<0><1><default><default>
-; Redeclared gpio_pin_0 as gpio_pin_24, for sun4i-gpio driver
-gpio_pin_24 = port:PI19<0><1><default><default>
+; lvds
+gpio_pin_24 = port:PD10<3><default><default><default>
+gpio_pin_25 = port:PD11<3><default><default><default>
+gpio_pin_26 = port:PD12<3><default><default><default>
+gpio_pin_27 = port:PD13<3><default><default><default>
+gpio_pin_28 = port:PD14<3><default><default><default>
+gpio_pin_29 = port:PD15<3><default><default><default>
+gpio_pin_30 = port:PD16<3><default><default><default>
+gpio_pin_31 = port:PD17<3><default><default><default>
+gpio_pin_32 = port:PD18<3><default><default><default>
+gpio_pin_33 = port:PD19<3><default><default><default>
+; csi
+gpio_pin_34 = port:PE04<3><default><default><default>
+gpio_pin_35 = port:PE05<3><default><default><default>
+gpio_pin_36 = port:PE06<3><default><default><default>
+gpio_pin_37 = port:PE07<3><default><default><default>
+gpio_pin_38 = port:PE08<3><default><default><default>
+gpio_pin_39 = port:PE09<3><default><default><default>
+gpio_pin_40 = port:PE10<3><default><default><default>
+gpio_pin_41 = port:PE11<3><default><default><default>
+gpio_pin_42 = port:PB19<3><default><default><default>
+gpio_pin_43 = port:PB18<3><default><default><default>
+gpio_pin_44 = port:PE02<3><default><default><default>
+gpio_pin_45 = port:PE03<3><default><default><default>
+gpio_pin_46 = port:PE00<3><default><default><default>
+gpio_pin_47 = port:PE01<3><default><default><default>
+gpio_pin_48 = port:PH26<3><default><default><default>
+gpio_pin_49 = port:PH27<3><default><default><default>
+; Redeclared gpio_pin_50 as gpio_pin_24, for sun4i-gpio driver
+gpio_pin_50 = port:PI19<0><1><default><default>
 
 [sb_pwm0]
 pwm_gpio = port:PH06<1><default><default><default>
