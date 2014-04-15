@@ -253,7 +253,7 @@ pack_cmd()
     fi
 }
 
-function do_pack_a20()
+do_pack_a20()
 {
     echo "Packing for linux"
     export PATH=${LIVESUIT_DIR}/a20/mod_update:${LIVESUIT_DIR}/a20/eDragonEx:${LIVESUIT_DIR}/a20/fsbuild200:$PATH
