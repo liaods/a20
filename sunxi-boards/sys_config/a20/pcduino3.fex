@@ -218,8 +218,8 @@ uart_ring           = port:PA17<4><1><default><default>
 uart_used           = 1
 uart_port           = 2
 uart_type           = 4
-uart_tx             = port:PI18<3><1><default><default>
-uart_rx             = port:PI19<3><1><default><default>
+uart_tx             = port:PI18<0><2><default><default>
+uart_rx             = port:PI19<1><2><default><default>
 uart_rts            = port:PI16<3><1><default><default>
 uart_cts            = port:PI17<3><1><default><default>
 
@@ -266,11 +266,11 @@ uart_rx             = port:PA15<3><1><default><default>
 [spi0_para]
 spi_used            = 1
 spi_cs_bitmap       = 1
-spi_cs0             = port:PI10<2><default><default><default>
+spi_cs0             = port:PI10<0><2><default><default>
 spi_cs1             = port:PI14<2><default><default><default>
-spi_sclk            = port:PI11<2><default><default><default>
-spi_mosi            = port:PI12<2><default><default><default>
-spi_miso            = port:PI13<2><default><default><default>
+spi_sclk            = port:PI11<0><2><default><default>
+spi_mosi            = port:PI12<0><2><default><default>
+spi_miso            = port:PI13<0><2><default><default>
 
 [spi1_para]
 spi_used            = 0
@@ -284,11 +284,11 @@ spi_miso            = port:PA03<3><default><default><default>
 [spi2_para]
 spi_used            = 1
 spi_cs_bitmap       = 1
-spi_cs0             = port:PC19<3><default><default><default>
+spi_cs0             = port:PC19<0><2><default><default>
 spi_cs1             = port:PB13<2><default><default><default>
-spi_sclk            = port:PC20<3><default><default><default>
-spi_mosi            = port:PC21<3><default><default><default>
-spi_miso            = port:PC22<3><default><default><default>
+spi_sclk            = port:PC20<0><2><default><default>
+spi_mosi            = port:PC21<0><2><default><default>
+spi_miso            = port:PC22<0><2><default><default>
 
 [spi3_para]
 spi_used            = 0
@@ -1505,30 +1505,30 @@ LV8_volt = 1050
 [gpio_para]
 gpio_used = 1
 gpio_num = 50
-gpio_pin_0 = port:PI19<0><1><default><default>
-gpio_pin_1 = port:PI18<0><1><default><default>
-gpio_pin_2 = port:PH07<0><1><default><default>
-gpio_pin_3 = port:PH06<0><1><default><default>
-gpio_pin_4 = port:PH08<0><1><default><default>
-gpio_pin_5 = port:PB02<0><1><default><default>
-gpio_pin_6 = port:PI03<0><1><default><default>
-gpio_pin_7 = port:PH09<0><1><default><default>
-gpio_pin_8 = port:PH10<0><1><default><default>
-gpio_pin_9 = port:PH05<0><1><default><default>
-gpio_pin_10 = port:PI10<0><1><default><default>
-gpio_pin_11 = port:PI12<0><1><default><default>
-gpio_pin_12 = port:PI13<0><1><default><default>
-gpio_pin_13 = port:PI11<0><1><default><default>
-gpio_pin_14 = port:PH11<0><1><default><default>
-gpio_pin_15 = port:PH12<0><1><default><default>
-gpio_pin_16 = port:PH13<0><1><default><default>
-gpio_pin_17 = port:PH14<0><1><default><default>
+gpio_pin_0 = port:PI19<1><2><default><default>
+gpio_pin_1 = port:PI18<0><2><default><default>
+gpio_pin_2 = port:PH07<0><2><default><default>
+gpio_pin_3 = port:PH06<0><2><default><default>
+gpio_pin_4 = port:PH08<0><2><default><default>
+gpio_pin_5 = port:PB02<0><2><default><default>
+gpio_pin_6 = port:PI03<0><2><default><default>
+gpio_pin_7 = port:PH09<0><2><default><default>
+gpio_pin_8 = port:PH10<0><2><default><default>
+gpio_pin_9 = port:PH05<0><2><default><default>
+gpio_pin_10 = port:PI10<0><2><default><default>
+gpio_pin_11 = port:PI12<0><2><default><default>
+gpio_pin_12 = port:PI13<0><2><default><default>
+gpio_pin_13 = port:PI11<0><2><default><default>
+gpio_pin_14 = port:PH11<0><2><default><default>
+gpio_pin_15 = port:PH12<0><2><default><default>
+gpio_pin_16 = port:PH13<0><2><default><default>
+gpio_pin_17 = port:PH14<0><2><default><default>
 gpio_pin_18 = port:PH15<1><default><default><0>
 gpio_pin_19 = port:PH16<1><default><default><0>
-gpio_pin_20 = port:PC19<0><1><default><default>
-gpio_pin_21 = port:PC21<0><1><default><default>
-gpio_pin_22 = port:PC22<0><1><default><default>
-gpio_pin_23 = port:PC20<0><1><default><default>
+gpio_pin_20 = port:PC19<0><2><default><default>
+gpio_pin_21 = port:PC21<0><2><default><default>
+gpio_pin_22 = port:PC22<0><2><default><default>
+gpio_pin_23 = port:PC20<0><2><default><default>
 ; lvds
 gpio_pin_24 = port:PD10<3><default><default><default>
 gpio_pin_25 = port:PD11<3><default><default><default>
