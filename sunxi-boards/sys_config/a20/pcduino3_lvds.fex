@@ -419,7 +419,7 @@ output_mode = 4
 
 [disp_init]
 disp_init_enable        = 1
-disp_mode               = 4
+disp_mode               = 1
 
 screen0_output_type     = 1
 screen0_output_mode     = 4
@@ -483,7 +483,7 @@ lcd1_hue                = 50
 ;lcd_gpio_1          SDA
 ;-------------------------------------------------------------------------------
 [lcd0_para]
-lcd_used                = 1
+lcd_used                = 0
 
 lcd_x                   = 1024
 lcd_y                   = 600
@@ -571,7 +571,7 @@ lcd_y                   = 600
 lcd_width               = 0
 lcd_height              = 0
 lcd_dclk_freq           = 51
-lcd_pwm_not_used        = 1
+lcd_pwm_not_used        = 0
 lcd_pwm_ch              = 0
 lcd_pwm_freq            = 10000
 lcd_pwm_pol             = 0
@@ -598,14 +598,14 @@ lcd_gamma_tbl_0         = 0x00000000
 lcd_gamma_tbl_1         = 0x00010101
 lcd_gamma_tbl_255       = 0x00ffffff
 
-lcd_bl_en_used          = 0
-lcd_bl_en               =
+lcd_bl_en_used          = 1
+lcd_bl_en               = port:PH07<1><0><default><1>
 
-lcd_power_used          = 0
-lcd_power               =
+lcd_power_used          = 1
+lcd_power               = port:PH06<1><0><default><1>
 
-lcd_pwm_used            = 0
-lcd_pwm                 = port:PI03<2><0><default><default>
+lcd_pwm_used            = 1
+lcd_pwm                 = port:PB02<2><0><default><default>
 
 lcd_gpio_0              =
 lcd_gpio_1              =
@@ -1476,7 +1476,7 @@ gpio_pin_1 = port:PI18<0><2><default><default>
 gpio_pin_2 = port:PH07<1><default><default><1>
 gpio_pin_3 = port:PH06<1><default><default><1>
 gpio_pin_4 = port:PH08<0><2><default><default>
-gpio_pin_5 = port:PB02<1><default><default><0>
+gpio_pin_5 = port:PB02<2><default><default><default>
 gpio_pin_6 = port:PI03<0><2><default><default>
 gpio_pin_7 = port:PH09<0><2><default><default>
 gpio_pin_8 = port:PH10<0><2><default><default>
