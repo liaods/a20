@@ -61,6 +61,7 @@ obj-$(CONFIG_MK802II_A20)	+= dram_mk802ii_a20.o
 obj-$(CONFIG_MK808C_A20)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
 obj-$(CONFIG_PCDUINO3)		+= dram_pcduino3.o
+obj-$(CONFIG_PCDUINO3_LVDS)	+= dram_pcduino3.o
 obj-$(CONFIG_PENGPOD700)	+= dram_sun4i_384_1024_iow8.o
 obj-$(CONFIG_PENGPOD1000)	+= dram_sun4i_408_1024_iow16.o
 obj-$(CONFIG_POV_PROTAB2)	+= dram_pov_protab2.o
