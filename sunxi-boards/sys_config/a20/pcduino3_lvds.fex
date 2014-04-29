@@ -713,7 +713,7 @@ csi_used            = 1
 
 csi_dev_qty         = 1
 csi_stby_mode       = 0
-csi_mname           = "gc0308"
+csi_mname           = "gc2035"
 csi_if              = 0
 csi_iovdd           = ""
 csi_avdd            = ""
@@ -727,7 +727,7 @@ csi_flash_pol       = 0
 csi_facing          = 0
 
 csi_twi_id          = 1
-csi_twi_addr        = 0x42
+csi_twi_addr        = 0x78
 csi_pck             = port:PE00<3><default><default><default>
 csi_ck              = port:PE01<3><default><default><default>
 csi_hsync           = port:PE02<3><default><default><default>
@@ -740,8 +740,8 @@ csi_d4              = port:PE08<3><default><default><default>
 csi_d5              = port:PE09<3><default><default><default>
 csi_d6              = port:PE10<3><default><default><default>
 csi_d7              = port:PE11<3><default><default><default>
-csi_reset           = 
-csi_power_en        = 
+csi_reset           = port:PH27<1><default><default><1>
+csi_power_en        = port:PH26<1><default><default><0>
 csi_stby            = 
 
 [csi1_para]
@@ -1470,7 +1470,7 @@ LV8_volt = 1050
 
 [gpio_para]
 gpio_used = 1
-gpio_num = 27
+gpio_num = 25
 gpio_pin_0 = port:PI19<1><2><default><default>
 gpio_pin_1 = port:PI18<0><2><default><default>
 gpio_pin_2 = port:PH07<1><default><default><1>
@@ -1495,14 +1495,11 @@ gpio_pin_20 = port:PC19<0><2><default><default>
 gpio_pin_21 = port:PC21<0><2><default><default>
 gpio_pin_22 = port:PC22<0><2><default><default>
 gpio_pin_23 = port:PC20<0><2><default><default>
-;lcd
+; usb_power_en
 gpio_pin_24 = port:PD02<1><default><default><1>
-;camera
-gpio_pin_25 = port:PH26<1><default><default><0>
-gpio_pin_26 = port:PH27<1><default><default><1>
 
 ; Redeclared gpio_pin_0 as gpio_pin_24, for sun4i-gpio driver
-gpio_pin_27 = port:PI19<0><1><default><default>
+gpio_pin_25 = port:PI19<0><1><default><default>
 
 [sb_pwm0]
 pwm_gpio = port:PH06<1><default><default><default>
