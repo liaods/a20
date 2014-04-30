@@ -242,9 +242,33 @@ static __s32 get_audio_info(__s32 sample_rate)
 	 * ACR_N 32000 44100 48000 88200 96000 176400 192000
 	 *       4096  6272  6144  12544 12288  25088  24576
 	 */
-	__inf("sample_rate:%d in get_audio_info\n", sample_rate);
+        /* FIXME: for scratch */
+        if ( sample_rate >= 22000 && sample_rate <= 22100 )
+            sample_rate = 22050;
+	printk("sample_rate:%d in get_audio_info\n", sample_rate);
 
 	switch (sample_rate) {
+	case 8000:
+		audio_info.ACR_N = 1024;
+		audio_info.CH_STATUS0 = (3 << 24);
+		audio_info.CH_STATUS1 = 0x0000000b;
+		break;	
+	case 16000:
+		audio_info.ACR_N = 2048;
+		audio_info.CH_STATUS0 = (3 << 24);
+		audio_info.CH_STATUS1 = 0x0000000b;
+		break;	
+	case 11025:
+		audio_info.ACR_N = 1568;
+		audio_info.CH_STATUS0 = (0 << 24);
+		audio_info.CH_STATUS1 = 0x0000000b;
+		break;
+	case 22050:
+		audio_info.ACR_N = 3136;
+		audio_info.CH_STATUS0 = (0 << 24);
+		audio_info.CH_STATUS1 = 0x0000000b;
+		break;
+
 	case 32000:
 		audio_info.ACR_N = 4096;
 		audio_info.CH_STATUS0 = (3 << 24);

@@ -1519,3 +1519,15 @@ pwm_gpio = port:PI10<1><default><default><default>
 [sb_pwm5]
 pwm_gpio = port:PI12<1><default><default><default>
 
+[sb_keypad_para]
+sb_key_used = 1
+key_num = 3
+; BACK ==> KEY_ESC
+key_pin_0 = port:PH17<6><1><3>
+key_code_0 = 1
+; MENU ==> KEY_SPACE
+key_pin_1 = port:PH18<6><1><3>
+key_code_1 = 57
+; HOME ==> KEY_ENTER
+key_pin_2 = port:PH19<6><1><3>
+key_code_2 = 28
