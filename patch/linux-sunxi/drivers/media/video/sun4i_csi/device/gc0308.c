@@ -67,8 +67,8 @@ MODULE_LICENSE("GPL");
 #define CSI_STBY_OFF 		0
 #define CSI_RST_ON			0
 #define CSI_RST_OFF			1
-#define CSI_PWR_ON			0
-#define CSI_PWR_OFF			1
+#define CSI_PWR_ON			1
+#define CSI_PWR_OFF			0
 
 
 #define V4L2_IDENT_SENSOR 0x0308
