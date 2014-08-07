@@ -294,6 +294,11 @@ do_pack_a20()
     if [ -f ${BUILD_DIR}/bootlogo.bmp ]; then
         cp ${BUILD_DIR}/bootlogo.bmp bootfs/os_show/ -f
     fi
+
+    if [ "$BOARD" = "pcduino3_lvds" ]; then
+        cp bootfs/boot_lvds.axf bootfs/boot.axf -f
+        cp bootfs/drv_de_lvds.drv bootfs/drv_de.drv -f
+    fi
     pack_cmd update_mbr sys_partition.bin 4
 
     pack_cmd update_boot0 boot0_nand.bin   sys_config.bin NAND
