@@ -153,24 +153,24 @@ emac_reset          = port:PA17<1><default><default><default>
 ;---------------------------------------------------------
 [gmac_para]
 gmac_used           = 1
-gmac_rxd3           = port:PA00<5><default><default><default>
-gmac_rxd2           = port:PA01<5><default><default><default>
-gmac_rxd1           = port:PA02<5><default><default><default>
-gmac_rxd0           = port:PA03<5><default><default><default>
-gmac_txd3           = port:PA04<5><default><default><default>
-gmac_txd2           = port:PA05<5><default><default><default>
-gmac_txd1           = port:PA06<5><default><default><default>
-gmac_txd0           = port:PA07<5><default><default><default>
-gmac_rxclk          = port:PA08<5><default><default><default>
-gmac_rxerr          = port:PA09<0><default><default><default>
-gmac_rxctl          = port:PA10<5><default><default><default>
-gmac_mdc            = port:PA11<5><default><default><default>
-gmac_mdio           = port:PA12<5><default><default><default>
-gmac_txctl          = port:PA13<5><default><default><default>
-gmac_txclk          = port:PA14<0><default><default><default>
-gmac_txck           = port:PA15<5><default><default><default>
-gmac_clkin          = port:PA16<5><default><default><default>
-gmac_txerr          = port:PA17<0><default><default><default>
+gmac_rxd3           = port:PA00<5><default><3><default>
+gmac_rxd2           = port:PA01<5><default><3><default>
+gmac_rxd1           = port:PA02<5><default><3><default>
+gmac_rxd0           = port:PA03<5><default><3><default>
+gmac_txd3           = port:PA04<5><default><3><default>
+gmac_txd2           = port:PA05<5><default><3><default>
+gmac_txd1           = port:PA06<5><default><3><default>
+gmac_txd0           = port:PA07<5><default><3><default>
+gmac_rxclk          = port:PA08<5><default><3><default>
+gmac_rxerr          = port:PA09<0><default><3><default>
+gmac_rxctl          = port:PA10<5><default><3><default>
+gmac_mdc            = port:PA11<5><default><3><default>
+gmac_mdio           = port:PA12<5><default><3><default>
+gmac_txctl          = port:PA13<5><default><3><default>
+gmac_txclk          = port:PA14<0><default><3><default>
+gmac_txck           = port:PA15<5><default><3><default>
+gmac_clkin          = port:PA16<5><default><3><default>
+gmac_txerr          = port:PA17<0><default><3><default>
 
 ;-------------------------------------------------------------------------------
 ;i2c configuration
@@ -1476,7 +1476,7 @@ gpio_pin_1 = port:PI18<0><2><default><default>
 gpio_pin_2 = port:PH07<1><default><default><1>
 gpio_pin_3 = port:PH06<1><default><default><0>
 gpio_pin_4 = port:PH08<1><default><default><1>
-gpio_pin_5 = port:PB02<2><default><default><default>
+gpio_pin_5 = port:PB02<0><2><default><default>
 gpio_pin_6 = port:PI03<0><2><default><default>
 gpio_pin_7 = port:PH09<0><2><default><default>
 gpio_pin_8 = port:PH10<6><default><default><default>
