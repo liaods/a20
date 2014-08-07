@@ -96,7 +96,7 @@ standby_mode		= 0
 ;-------------------------------------------------------------------------------
 [dram_para]
 dram_baseaddr       = 0x40000000
-dram_clk            = 480
+dram_clk            = 408
 dram_type           = 3
 dram_rank_num       = 0xffffffff
 dram_chip_density   = 0xffffffff
@@ -348,7 +348,7 @@ ctp_revert_x_flag       = 0
 ctp_revert_y_flag       = 0
 ctp_exchange_x_y_flag   = 0
 
-ctp_int_port            = port:PH08<6><default><default><default>
+ctp_int_port            = port:PH10<6><default><default><default>
 ctp_wakeup              = 
 
 ;-------------------------------------------------------------------------------
@@ -599,13 +599,13 @@ lcd_gamma_tbl_1         = 0x00010101
 lcd_gamma_tbl_255       = 0x00ffffff
 
 lcd_bl_en_used          = 1
-lcd_bl_en               = port:PH07<1><0><default><1>
+lcd_bl_en               = port:PH07<1><default><default><1>
 
 lcd_power_used          = 1
-lcd_power               = port:PH06<1><0><default><1>
+lcd_power               = port:PH08<1><default><default><1>
 
 lcd_pwm_used            = 1
-lcd_pwm                 = port:PB02<2><0><default><default>
+lcd_pwm                 = port:PH06<1><default><default><0>
 
 lcd_gpio_0              =
 lcd_gpio_1              =
@@ -997,7 +997,7 @@ usb_restric_capacity= 5
 usb_used            = 1
 usb_port_type       = 1
 usb_detect_type     = 0
-usb_drv_vbus_gpio   = port:PH06<1><0><default><0>
+usb_drv_vbus_gpio   = port:PH11<1><0><default><0>
 usb_restrict_gpio   = 
 usb_host_init_state = 1
 usb_restric_flag    = 0
@@ -1474,12 +1474,12 @@ gpio_num = 25
 gpio_pin_0 = port:PI19<1><2><default><default>
 gpio_pin_1 = port:PI18<0><2><default><default>
 gpio_pin_2 = port:PH07<1><default><default><1>
-gpio_pin_3 = port:PH06<1><default><default><1>
-gpio_pin_4 = port:PH08<6><default><default><default>
+gpio_pin_3 = port:PH06<1><default><default><0>
+gpio_pin_4 = port:PH08<1><default><default><1>
 gpio_pin_5 = port:PB02<2><default><default><default>
 gpio_pin_6 = port:PI03<0><2><default><default>
 gpio_pin_7 = port:PH09<0><2><default><default>
-gpio_pin_8 = port:PH10<0><2><default><default>
+gpio_pin_8 = port:PH10<6><default><default><default>
 gpio_pin_9 = port:PH05<0><2><default><default>
 gpio_pin_10 = port:PI10<0><2><default><default>
 gpio_pin_11 = port:PI12<0><2><default><default>
