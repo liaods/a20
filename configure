@@ -41,9 +41,13 @@ generate_board_mk() {
 		EOT
 		;;
 	a20)
+		KERNEL_CONFIG=sun7i${android:+_nuclear}_defconfig
+		if [ -f patch/linux-sunxi/arch/arm/configs/${board}_defconfig ]; then
+			KERNEL_CONFIG=${board}_defconfig
+		fi
 		cat <<-EOT
 		MACH=sun7i
-		KERNEL_CONFIG=sun7i${android:+_nuclear}_defconfig
+		KERNEL_CONFIG=${KERNEL_CONFIG}
 		EOT
 		;;
 	*)
