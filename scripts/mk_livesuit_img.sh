@@ -295,7 +295,7 @@ do_pack_a20()
         cp ${BUILD_DIR}/bootlogo.bmp bootfs/os_show/ -f
     fi
 
-    if [ "$BOARD" = "pcduino3_lvds" ]; then
+    if [ "$BOARD" = "pcduino3_lvds" ] || [ "$BOARD" = "pcduino3b_lvds" ]; then
         cp bootfs/boot_lvds.axf bootfs/boot.axf -f
         cp bootfs/drv_de_lvds.drv bootfs/drv_de.drv -f
     fi
