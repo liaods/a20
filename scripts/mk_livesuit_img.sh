@@ -253,7 +253,7 @@ pack_cmd()
     fi
 }
 
-function do_pack_a20()
+do_pack_a20()
 {
     echo "Packing for linux"
     export PATH=${LIVESUIT_DIR}/a20/mod_update:${LIVESUIT_DIR}/a20/eDragonEx:${LIVESUIT_DIR}/a20/fsbuild200:$PATH
@@ -293,6 +293,11 @@ function do_pack_a20()
     # update bootlogo.bmp
     if [ -f ${BUILD_DIR}/bootlogo.bmp ]; then
         cp ${BUILD_DIR}/bootlogo.bmp bootfs/os_show/ -f
+    fi
+
+    if [ "$BOARD" = "pcduino3_lvds" ] || [ "$BOARD" = "pcduino3b_lvds" ]; then
+        cp bootfs/boot_lvds.axf bootfs/boot.axf -f
+        cp bootfs/drv_de_lvds.drv bootfs/drv_de.drv -f
     fi
     pack_cmd update_mbr sys_partition.bin 4
 

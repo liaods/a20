@@ -7,7 +7,7 @@ CROSS_COMPILE=arm-linux-gnueabihf-
 OUTPUT_DIR=$(CURDIR)/output
 BUILD_PATH=$(CURDIR)/build
 ROOTFS=$(CURDIR)/rootfs.img
-Q=
+Q=@
 J=$(shell expr `grep ^processor /proc/cpuinfo  | wc -l` \* 2)
 
 include chosen_board.mk
@@ -100,15 +100,16 @@ endif
 libs: cedarx-libs/.git
 
 update:
-	$(Q)git stash
-	$(Q)git pull --rebase
-	$(Q)git submodule -q init 
-	$(Q)git submodule -q foreach git stash save -q --include-untracked "make update stash"
-	-$(Q)git submodule -q foreach git fetch -q
-	-$(Q)git submodule -q foreach "git rebase origin HEAD || :"
-	-$(Q)git submodule -q foreach "git stash pop -q || :"
-	-$(Q)git stash pop -q
-	$(Q)git submodule status
+	$(Q)git pull
+#	$(Q)git stash
+#	$(Q)git pull --rebase
+#	$(Q)git submodule -q init 
+#	$(Q)git submodule -q foreach git stash save -q --include-untracked "make update stash"
+#	-$(Q)git submodule -q foreach git fetch -q
+#	-$(Q)git submodule -q foreach "git rebase origin HEAD || :"
+#	-$(Q)git submodule -q foreach "git stash pop -q || :"
+#	-$(Q)git stash pop -q
+#	$(Q)git submodule status
 
 %/.git:
 	$(Q)git submodule init
